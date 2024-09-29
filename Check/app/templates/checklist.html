@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Check-in and Check-out List</title>
+</head>
+<body>
+    <h1>Check-in and Check-out List</h1>
+    <h2>Check for a user</h2>
+    <form method="POST">
+        <label for="username">Username:</label>
+        <input type="text" name="username" required>
+        <br>
+        <input type="submit" value="Search">
+    </form>
+    <h3>Check-ins</h3>
+    <ul>
+        {% for check_in in check_ins %}
+        <li>
+            {{ check_in.datetime }}: User: {{ check_in.username }}, Space: {{ check_in.space }}, Action: {{ check_in.action }}
+            {% if check_in.course_id %}Course ID: {{ check_in.course_id }}{% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+    
+    <h3>Check-outs</h3>
+    <ul>
+        {% for check_out in check_outs %}
+            <li>{{ check_out.datetime }}: User: {{ check_out.username }}, Space: {{ check_out.space }}</li>
+        {% endfor %}
+    </ul>
+    
+    <a href="{{ url_for('routes_check.check_list') }}">Show all users</a>
+
+    <a href="{{ url_for('routes_check.main_page') }}">Back to Main Page</a>
+    
+</body>
+</html>

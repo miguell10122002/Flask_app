@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Room Schedule</title>
+</head>
+<body>
+    <h1>{{ room.name }} Schedule</h1>
+
+    {% if events_by_date %}
+        {% for date, events in events_by_date.items() %}
+        <h2>{{ date }}</h2>
+        <ul>
+            {% for event in events %}
+            <li>{{ event.start }} - {{ event.end }} -> course ID : {{ event.course_id }}</li>
+            {% endfor %}
+        </ul>
+        {% endfor %}
+    {% else %}
+        <p>No events scheduled for this room.</p>
+    {% endif %}
+
+    <a href="{{ url_for('routes_rooms.list_rooms') }}">Go Back to Room List</a>
+</body>
+</html>

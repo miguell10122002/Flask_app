@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block content %}
+    {% if current_user.is_authenticated %}
+        <div class="alert alert-info" role="alert">FENIX Authenticated</div>
+    {% else %}
+        <div class="alert alert-danger" role="alert">NOT FENIX Authenticated</div>
+    {% endif %}
+
+    
+
+    <p>
+        <a class="btn btn-primary" href="{{ url_for('oauth2_authorize', provider='fenix') }}">Login with FENIX</a>
+    </p>
+    <div id="qr-reader"></div>
+    <div id="qr-reader-results"></div>
+{% endblock %}
+
+{% block customJS %}
+
+<script>
+
+function handleRoom(roomID) {
+    // Handle actions specific to a "room"
+    console.log("This is a room with ID:", roomID);
+
+    fetch(`/API/rooms/${roomID}/schedule`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            displayRoomSchedule(data);
+        })
+        .catch(error => {
+            console.error('There was a problem fetching the room schedule:', error.message);
+        });
+}
+
+      function displayRoomSchedule(data) {
+          let resultsDiv = document.getElementById('qr-reader-results');
+          // Check if data is null
+    if (!data) {
+        resultsDiv.innerHTML = '';
+        return;  // Exit the function
+    }
+          let htmlContent = `<h1>Room Schedule</h1>`;
+          
+
+          for (const [date, events] of Object.entries(data.events)) {
+              if (Array.isArray(events)) { 
+                  htmlContent += `<h2>${date}</h2>`;
+                  htmlContent += `<ul>`;
+                  events.forEach(event => {
+                      htmlContent += `<li>${event.start} - ${event.end || ''} -> course ID : ${event.course_id || ''}</li>`;
+                  });
+                  htmlContent += `</ul>`;
+              }
+          }
+
+          resultsDiv.innerHTML = htmlContent;
+      }
+
+    function handleRestaurant(restaurantID) {
+    // Handle actions specific to a "restaurant"
+    console.log("This is a restaurant with ID:", restaurantID);
+    
+    fetch(`/API/restaurant/${restaurantID}/Menu`) 
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => { 
+      displayMenu(data);
+
+    })
+    .catch(error => {
+        console.error('There was a problem fetching the menu:', error.message);
+    });
+    
+}
+function displayMenu(data) {
+    let resultsDiv = document.getElementById('qr-reader-results');
+    let htmlContent = `<h1>${data.restaurant_name} Menu</h1>`;
+    console.log("data:", data);
+
+    htmlContent += `<ul>`;
+    data.menu.forEach(item => {
+        htmlContent += `<li>${item.name} </li>`; 
+    });
+    htmlContent += `</ul>`;
+
+    resultsDiv.innerHTML = htmlContent;
+}
+</script>
+
+
+{% endblock %}

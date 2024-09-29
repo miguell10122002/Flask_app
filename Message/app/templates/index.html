@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Message app</title>
+</head>
+<body>
+    <h1>Message app</h1>
+    <ul>
+        
+            <li>
+                <a href="{{ url_for('routes_message.send_message' )}}"> Send Message </a>
+            </li>
+            <li>
+                <a href="{{ url_for('routes_message.check_list') }}">Message sent List </a>
+            </li>
+            <li>
+                <a href="{{ url_for('routes_message.received_list') }}">Message received List </a>
+            </li>
+            
+    </ul>
+</body>
+</html>

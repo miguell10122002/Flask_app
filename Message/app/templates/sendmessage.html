@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Check-in</title>
+</head>
+<body>
+    <h1>Check-in Form</h1>
+    <form method="POST">
+        <label for="send_user">From:</label>
+        <input type="text" name="send_user" required>
+        <label for="receive_user">To:</label>
+        <input type="text" name="receive_user" required>
+        <label for="content">Content:</label>
+        <input type="text" name="content" required>
+        <br>
+        <input type="submit" value="Send">
+    </form>
+    <a href="{{ url_for('routes_message.main_page') }}">Go Back to Main Page</a>
+</body>
+</html>

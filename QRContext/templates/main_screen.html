@@ -1,0 +1,426 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 style="margin-bottom: 20px;">Hi, {{ current_user.username }}!</h2>
+
+<div class="button-container" style="margin-bottom: 20px;">
+    <a class="btn btn-primary" href="{{ url_for('logout') }}" style="margin-right: 10px;">Logout</a>
+    <a class="btn btn-primary" onclick="callMessage()" id="messageBtn" style="display: none;">Messages</a>
+</div>
+
+<div id="qr-reader" style="margin-bottom: 20px;"></div>
+
+<p id="dropdownMessage" style="display: none; margin-bottom: 10px;">Choose an enrolled course to your study period, and then check-in.</p>
+<select id="enrolledCoursesDropdown" style="display: none; margin-bottom: 20px;"></select>
+
+<button id="checkInBtn" onclick="checkIn()" class="ui disabled button" style="display: none; margin-bottom: 20px;">Check-in</button>
+
+<button id="checkOutBtn" onclick="checkOut()" class="ui disabled button" style="display: none; margin-bottom: 20px;">Check-out</button>
+
+<div id="evaluationForm" style="display: none; margin-bottom: 20px;">
+    <h3>Leave an Evaluation:</h3>
+    <textarea id="evaluationText" placeholder="Your feedback..." style="margin-bottom: 20px;"></textarea>
+    <button onclick="submitEvaluation()">Submit</button>
+</div>
+
+<div id="qr-reader-results"></div>
+
+{% endblock %}
+
+{% block customJS %}
+
+<script>
+    
+    function callMessage(room, currentUser){
+         url = `/messages?room=${currentSpaceID}`;
+        
+        // Redirect to the URL
+        window.location.href = url;
+      }
+
+function resetButtonStates() {
+// Hide the check-out button and disable it
+const checkOutBtn = document.getElementById("checkOutBtn");
+checkOutBtn.style.display = "none";
+checkOutBtn.classList.add('disabled');
+
+// Hide the check-in button and disable it
+const checkInBtn = document.getElementById("checkInBtn");
+checkInBtn.style.display = "none";
+checkInBtn.classList.add('disabled');
+
+evaluationForm =document.getElementById("evaluationForm");
+evaluationForm.style.display= "none";
+
+enrolledCoursesDropdown =document.getElementById("enrolledCoursesDropdown");
+enrolledCoursesDropdown.style.display= "none";
+
+dropdownMessage= document.getElementById("dropdownMessage");
+dropdownMessage.style.display= "none";
+
+messageButton =document.getElementById("messageBtn");
+messageButton.style.display= "none";
+
+
+}
+function checkIn(space, room_or_restaurant,action,course_id) {
+// room = 0; restaurant = 1
+
+userId = '{{ current_user.id }}';  // Assuming you have a user id available.
+currentSpaceID = space;
+
+
+// Create an object to send in the POST request
+checkInData = {
+    userId: userId,
+    space: space,
+    action: action,
+    course_id:course_id,
+
+};
+
+if (isAuthenticated) {
+            // Send a POST request to your API endpoint
+fetch('/API/checkIn', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(checkInData)
+})
+.then(response => {
+    if (response.status === 200) {
+        console.log('Check-in successful');
+        // Disable "Check-in" and enable "Check-out" button after checking in
+        document.getElementById("checkInBtn").classList.add('disabled');
+        document.getElementById("checkInBtn").style.display = "none";
+        document.getElementById("checkOutBtn").classList.remove('disabled');
+        document.getElementById("checkOutBtn").style.display = "block";
+        document.getElementById("enrolledCoursesDropdown").style.display = "none";
+        document.getElementById("dropdownMessage").style.display = "none"
+
+        // Hide the evaluation form when checking into a room
+        if (room_or_restaurant === 0) {
+            document.getElementById("messageBtn").style.display = "block";
+            document.getElementById("evaluationForm").style.display = "none";
+        } else {
+            // Display the evaluation form for restaurants
+            document.getElementById("evaluationForm").style.display = "block";
+        }
+    } else {
+        console.error('Check-in failed');
+        // Add code to handle errors, if needed
+    }
+})
+.catch(error => {
+    console.error('Error during check-in:', error);
+    // Add code to handle errors, if needed
+});
+    }
+}
+
+    function checkOut() {
+            
+            userId = '{{ current_user.id }}';  
+         
+        
+         // Create an object to send in the POST request
+          checkOutData = {
+             userId: userId,
+             space: currentSpaceID,
+         };
+ 
+         // Send a POST request to your API endpoint
+         fetch('/API/checkOut', {
+             method: 'POST',
+             headers: {
+                 'Content-Type': 'application/json'
+             },
+             body: JSON.stringify(checkOutData)
+         })
+         .then(response => {
+             if (response.status === 200) {
+                 console.log('Check-OUt successful');
+        // Disable "Check-out" and enable "Check-in" button after checking out
+        document.getElementById("checkOutBtn").classList.add('disabled');
+        document.getElementById("checkOutBtn").style.display = "none";
+        document.getElementById("checkInBtn").classList.add('disabled');
+        document.getElementById("checkInBtn").style.display = "none";
+        document.getElementById("evaluationForm").style.display = "none";
+        document.getElementById("enrolledCoursesDropdown").style.display = "none";
+        document.getElementById("dropdownMessage").style.display = "none";
+        document.getElementById("messageBtn").style.display = "none";
+        
+        currentSpaceID = null;
+        var html5QrcodeScanner = new Html5QrcodeScanner("qr-reader", { fps: 10, qrbox: 250 });
+        html5QrcodeScanner.render(onScanSuccess);
+        //document.getElementById('qr-reader-results').style.display = "none";
+             } else {
+                 console.error('Check-OUt failed');
+                 // Add code to handle errors, if needed
+             }
+         })
+         .catch(error => {
+             console.error('Error during check-OUt:', error);
+             // Add code to handle errors, if needed
+         });
+
+        }
+
+function handleRoom(roomID) {
+
+console.log("This is a room with ID:", roomID);
+
+fetch(`/API/rooms/${roomID}/schedule`)
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (window.getComputedStyle(checkOutBtn).display !== 'none') {
+           alert("You are already checked in, you need to check out of the room you are in first")
+            console.log("Check-out button is displayed; not showing room details.");
+            return;
+        }
+        displayRoomSchedule(data);
+        let checkInBtn = document.getElementById("checkInBtn");
+       
+        if (checkInBtn) {
+            
+            currentCourseId = getCurrentCourseIdFromSchedule(data);
+            console.log("currentCourseId:",currentCourseId);
+            if (currentCourseId && isUserEnrolledInCourse(currentCourseId)) {
+                
+                // User is enrolled in the current course, so show the check-in button.
+                checkInBtn.style.display = "block";
+                checkInBtn.onclick = function () {
+                    checkIn(roomID, 0,"class",currentCourseId);
+                };
+
+                
+            }else if (currentCourseId === null) {
+            document.getElementById("enrolledCoursesDropdown").style.display = "block";
+            document.getElementById("dropdownMessage").style.display = "block";dropdownMessage
+            populateEnrolledCoursesDropdown();
+            checkInBtn.style.display = "block";
+            
+            checkInBtn.onclick = function () {
+                let dropdown = document.getElementById("enrolledCoursesDropdown");
+
+                // Get the selected value
+                let selectedCourseId = dropdown.options[dropdown.selectedIndex].value;
+
+                // Pass the selected value to the checkIn function
+                checkIn(roomID, 0, "study", selectedCourseId);
+            };
+            }
+            } else {
+                // User is not enrolled in the current course, so hide the check-in button.
+                checkInBtn.style.display = "none";
+            }            
+    })
+    .catch(error => {
+        console.error('There was a problem fetching the room schedule:', error.message);
+    });
+}
+
+function displayRoomSchedule(data) {
+    
+    let resultsDiv = document.getElementById('qr-reader-results');
+      // Check if data is null
+    if (!data) {
+        resultsDiv.innerHTML = '<li> No schedule for this classroom </li>';
+        return;  // Exit the function
+    }
+      let htmlContent = `<h1>Room Schedule</h1>`;
+      
+
+      for (const [date, events] of Object.entries(data.events)) {
+          if (Array.isArray(events)) { 
+              htmlContent += `<h2>${date}</h2>`;
+              htmlContent += `<ul>`;
+              events.forEach(event => {
+                  htmlContent += `<li>${event.start} - ${event.end || ''} -> course ID : ${event.course_id || ''}</li>`;
+              });
+              htmlContent += `</ul>`;
+          }
+      }
+
+      resultsDiv.innerHTML = htmlContent;
+  }
+
+function getCurrentCourseIdFromSchedule(scheduleData) {
+const currentDate = new Date();
+console.log('Current Date:', currentDate);
+
+for (const [date, events] of Object.entries(scheduleData.events)) {
+    if (Array.isArray(events)) {
+        for (const event of events) {
+            // Split date into components and rearrange them to "day/month/year" format
+            const dateComponents = date.split('/');
+            const eventDate = new Date(
+                `${dateComponents[1]}/${dateComponents[0]}/${dateComponents[2]} ${event.start}`
+            );
+
+            // Similarly, rearrange the end date
+            const eventEnd = new Date(
+                `${dateComponents[1]}/${dateComponents[0]}/${dateComponents[2]} ${event.end}`
+            );
+
+
+            // Ensure the current date is within the event's timeframe
+            if (currentDate >= eventDate && currentDate <= eventEnd) {
+                // Current date and time falls within this event's timeframe.
+                return event.course_id || null;
+            }
+        }
+    }
+}
+
+return null; // No matching event found for the current date and time
+}
+
+
+
+async function isUserEnrolledInCourse(courseId) {
+try {
+    const response = await fetch('/other', {
+        method: 'GET',
+    });
+
+    if (response.status === 200) {
+        const courseIds = await response.json();
+        
+        return courseIds.includes(courseId);
+    } else {
+        console.error('Failed to fetch user course IDs');
+        return false;
+    }
+} catch (error) {
+    console.error('Error during course enrollment check:', error);
+    return false;
+}
+}
+
+async function populateEnrolledCoursesDropdown() {
+try {
+    const response = await fetch('/other', {
+        method: 'GET',
+    });
+
+    if (response.status !== 200) {
+        throw new Error("Failed to retrieve enrolled courses.");
+    }
+
+    const courseIds = await response.json();
+
+    
+    const dropdown = document.getElementById('enrolledCoursesDropdown');
+
+    // Clear any existing options in the dropdown
+    dropdown.innerHTML = '';
+
+    // Populate the dropdown with the retrieved course IDs
+    courseIds.forEach(courseId => {
+        const option = document.createElement('option');
+        option.value = courseId;
+        option.textContent = courseId;
+        dropdown.appendChild(option);
+    });
+
+} catch (error) {
+    console.error("Error populating the dropdown:", error);
+    // You might also want to show an error message to the user here.
+}
+}
+
+  function handleRestaurant(restaurantID) {
+      // Handle actions specific to a "restaurant"
+      console.log("This is a restaurant with ID:", restaurantID);
+      
+      fetch(`/API/restaurant/${restaurantID}/Menu`) 
+      .then(response => {
+          if (!response.ok) {
+              throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+          return response.json();
+      })
+      .then(data => { 
+        if (window.getComputedStyle(checkOutBtn).display !== 'none') {
+            alert("You are already checked in, you need to check out of the room you are in first")
+             console.log("Check-out button is displayed; not showing room details.");
+             return;
+         }
+        let checkInBtn = document.getElementById("checkInBtn");
+        enrolledCoursesDropdown =document.getElementById("enrolledCoursesDropdown");
+        enrolledCoursesDropdown.style.display= "none";
+        dropdownMessage =document.getElementById("dropdownMessage");
+        dropdownMessage.style.display= "none";
+        if (checkInBtn) {
+            checkInBtn.style.display = "block";
+            checkInBtn.onclick = function() {
+        checkIn(restaurantID,1,"eating",null);
+    }
+        }
+        displayMenu(data);
+      })
+      .catch(error => {
+          console.error('There was a problem fetching the menu:', error.message);
+      });
+      
+  }
+function displayMenu(data) {
+    
+    let resultsDiv = document.getElementById('qr-reader-results');
+    let htmlContent = `<h1>${data.restaurant_name} Menu</h1>`;
+    console.log("data:", data);
+
+      htmlContent += `<ul>`;
+      data.menu.forEach(item => {
+          htmlContent += `<li>${item.name} </li>`; 
+      });
+      htmlContent += `</ul>`;
+
+      resultsDiv.innerHTML = htmlContent;
+  }
+
+function submitEvaluation() {
+var feedback = document.getElementById("evaluationText").value;
+var restaurantId = currentSpaceID; 
+
+if (!feedback) {
+    alert("Please enter your feedback before submitting!");
+    return;
+}
+  
+// Create an object to send in the POST request
+        evaluationData = {
+            evaluation: feedback,
+         };
+         
+ 
+// Send a POST request to your QR code handler's API endpoint
+fetch(`/API/restaurant/${restaurantId}/evaluation`, {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(evaluationData)
+})
+.then(response => {
+    if (response.status === 200) {
+        alert("Feedback submitted successfully!");
+    } else {
+        alert("Feedback submission failed!");
+    }
+})
+.catch(error => {
+    console.error('Error during feedback submission:', error);
+});
+}
+
+</script>
+
+{% endblock %}

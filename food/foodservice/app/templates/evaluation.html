@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Evaluate Restaurant</title>
+</head>
+<body>
+    <h1>Evaluate {{ restaurant.Nome }}</h1>
+    <form method="POST">
+        <label for="evaluation">Evaluation:</label>
+        <input type="text" name="evaluation" required>
+        <br>
+        <input type="submit" value="Submit">
+    </form>
+    <a href="{{ url_for('list_routes.list_restaurants') }}">Go Back to Restaurant List</a>
+</body>
+</html>

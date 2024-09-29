@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Menu</title>
+</head>
+<body>
+    <h1>{{ restaurante.Nome }} Menu</h1>
+    <ul>
+        {% for menu_item in menu_items %}
+            <li>{{ menu_item.Pratos }}</li>
+        {% endfor %}
+    </ul>
+    <a href="{{ url_for('list_routes.list_restaurants') }}">Go Back to Restaurant List</a>
+
+    
+    <h2>Leave an Evaluation:</h2>
+    <form method="post" action="{{ url_for('list_routes.evaluate_restaurant', restaurant_id=restaurante.id) }}">
+        <textarea name="evaluation" rows="4" cols="50"></textarea><br>
+        <input type="submit" value="Submit Evaluation">
+    </form>
+</body>
+</html>
+

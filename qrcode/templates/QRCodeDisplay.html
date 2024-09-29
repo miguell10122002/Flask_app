@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>QR Code</title>
+</head>
+<body>
+    
+    <h1>QR Code</h1>
+    
+    <!-- Add the form to select type and enter ID -->
+    <form action="/generateqr" method="post">
+        <select name="type">
+            <option value="room">Room</option>
+            <option value="restaurant">Restaurant</option>
+        </select>
+        <input type="text" name="id" placeholder="Enter ID">
+        <input type="submit" value="Generate QR">
+    </form>
+
+    <!-- Once a QR code is generated, this image tag will display it. -->
+    <img src="/getQRCode" alt="QR Code" id="qrCodeImage">
+    <br>
+    
+    <a href="{{ url_for('index') }}">Back to Main Page</a>
+</body>
+</html>

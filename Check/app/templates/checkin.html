@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Check-in</title>
+</head>
+<body>
+    <h1>Check-in Form</h1>
+    <form method="POST">
+        <label for="username">Username:</label>
+        <input type="text" name="username" required>
+        <label for="space">Space:</label>
+        <input type="text" name="space" required>
+        <br>
+        <input type="submit" value="Submit">
+    </form>
+    <a href="{{ url_for('routes_check.main_page') }}">Go Back to Main Page</a>
+</body>
+</html>
